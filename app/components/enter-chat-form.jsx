@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-export default function Page() {
+export default function ChatRoomForm() {
   const [userName, setUserName] = useState("");
   const [chatRoom, setChatRoom] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,19 +13,19 @@ export default function Page() {
     setLoading(true); // Set loading state
 
     try {
-      // Make POST request to your backend
-      const res = await fetch("/api/sendMessage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userName, chatRoom }),
+      const res = await axios.post("/api/sendMessage", {
+        userName: userName,
+        chatRoom: chatRoom,
       });
 
-      const data = await res.json();
-      setMessage(data.message); // Show success or error message
+      // Handle the response
+      console.log(res.data);
     } catch (error) {
-      setMessage("An error occurred. Please try again.", error);
+      // Handle the error
+      console.error(
+        "Error while creating chat room:",
+        error.response ? error.response.data : error.message
+      );
     }
 
     setLoading(false); // Remove loading state after response
@@ -35,6 +35,7 @@ export default function Page() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
       <h1 className="text-2xl font-bold mb-6">Join a Chat Room</h1>
 
+      {/* Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"

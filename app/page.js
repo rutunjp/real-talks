@@ -2,40 +2,65 @@
 import { SendHorizonal } from "lucide-react";
 import { useEffect, useState } from "react";
 import MessageBubble from "./components/message-bubble";
+import userStore from "./utils/user-store";
+import ChatboxHeader from "./components/chatbox-header";
 
 export default function Home() {
+  const { user, setUser, signOut } = userStore();
   const [messages, setMessages] = useState([
     {
-      sender: "Ramesh",
+      sender: "Rutunj",
       message: "Hii",
+    },
+    { sender: "Rakesh", message: "JSK" },
+    {
+      sender: "Rutunj",
+      message: "Kem cho",
     },
   ]);
   const [message, setMessage] = useState("");
-  let sender;
-  let user;
-  // useEffect(()=>{
+  const [sender, setSender] = useState("");
 
-  // },[])
+  useEffect(() => {
+    setUser("Rutunj");
+    console.log("sender", typeof sender);
+    console.log("user", typeof user);
+  }, []);
   function handleSend() {
     setMessage("");
   }
   return (
-    <div className="w-1/2 m-auto flex flex-col place-self-center h-[512px] p-4 bg-gray-200 rounded-lg border-[1px] border-gray-400">
-      <h1>Chat room</h1>
-      {sender === user ? (
-        <MessageBubble senderIsUser={true} />
-      ) : (
-        <MessageBubble senderIsUser={false} />
-      )}
-
-      <div className="flex mt-auto flex-row gap-2 w-full">
+    <div className="bg-gray-200 m-auto  h-[512px] flex w-1/2 flex-col place-self-center rounded-lg border-[1px] border-gray-400">
+      <ChatboxHeader user={user} />
+      <div className="p-4">
+        {messages.map((message, id) =>
+          message.sender === user ? (
+            <MessageBubble
+              key={id}
+              message={message.message}
+              senderIsUser={true} // Assuming this means the sender is the user
+            />
+          ) : (
+            <MessageBubble
+              key={id}
+              message={message.message}
+              senderIsUser={false} // Assuming this means the sender is not the user
+            />
+          )
+        )}
+      </div>
+      <div className="flex mt-auto flex-row gap-2 p-2 w-full">
         <input
           onChange={(e) => setMessage(e.target.value)}
+          value={message}
           className="w-full p-2 rounded-lg"
           placeholder="Enter message..."
         />
 
-        <button onClick={() => handleSend()}>
+        <button
+          className="hover:-rotate-45 duration-150 p-2 hover:scale-125 hover:ease-in-out"
+          onClick={() => handleSend()}
+        >
           <SendHorizonal className="w-5 h-5" />
         </button>
       </div>
