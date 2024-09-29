@@ -9,7 +9,10 @@ export async function POST(req) {
     const client = await clientPromise;
     const db = client.db("real-talks");
 
+    // Check if the user already exists
     let user = await db.collection("users").findOne({ username: userName });
+
+    // If the user doesn't exist, create a new one
     if (!user) {
       const newUser = {
         username: userName,
@@ -19,11 +22,11 @@ export async function POST(req) {
       };
 
       const insertResult = await db.collection("users").insertOne(newUser);
-      if (!insertResult.insertedId) {
-        return new Response(JSON.stringify(user), {
-          status: 500,
-          message: "Failed to create new user",
-        });
+      if (!insertResult?.insertedId) {
+        return new Response(
+          JSON.stringify({ message: "Failed to create new user" }),
+          { status: 500 }
+        );
       }
 
       // Retrieve the newly created user
@@ -36,8 +39,9 @@ export async function POST(req) {
     let chatRoomData = await db
       .collection("conversations")
       .findOne({ _id: chatRoom });
+    console.log("chatRoomData", chatRoomData);
+    // If the chat room doesn't exist, create a new one
     if (!chatRoomData) {
-      // If chat room doesn't exist, create a new chat room
       const newChatRoom = {
         _id: chatRoom,
         name: chatRoom, // The name of the chat room (same as the ID)
@@ -49,30 +53,37 @@ export async function POST(req) {
         .collection("conversations")
         .insertOne(newChatRoom);
       if (!chatRoomInsert.insertedId) {
-        return new Response(JSON.stringify(user), {
-          status: 500,
-          message: "Failed to create new chat room",
-        });
+        return new Response(
+          JSON.stringify({ message: "Failed to create new chat room" }),
+          { status: 500 }
+        );
       }
 
       // Retrieve the newly created chat room
       chatRoomData = await db
         .collection("conversations")
         .findOne({ _id: chatRoomInsert.insertedId });
+
+      return new Response(
+        JSON.stringify({
+          message: `Created new chat room: ${chatRoom}`,
+          user,
+          chatRoomData,
+        }),
+        { status: 201 }
+      );
     }
 
-    // Return success response
-    return new Response(JSON.stringify(user), {
-      status: 500,
-      message: "Failed to create new chat room",
-      user,
-      chatRoomData,
-    });
+    return new Response(
+      JSON.stringify({
+        message: `Entered chat room: ${chatRoom}`,
+      }),
+      { status: 200 }
+    );
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify(user), {
+    return new Response(JSON.stringify({ message: "Internal Server Error" }), {
       status: 500,
-      message: "Internal Server Error",
     });
   }
 }

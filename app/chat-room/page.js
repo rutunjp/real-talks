@@ -1,94 +1,57 @@
 "use client";
-import { useState } from "react";
+import { SendHorizonal } from "lucide-react";
+import { useEffect, useState } from "react";
+import MessageBubble from "../components/message-bubble";
+import userStore from "../utils/user-store";
+import ChatboxHeader from "../components/chatbox-header";
+export default function Home() {
+  const { user, setUser, signOut } = userStore();
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+  const [sender, setSender] = useState("");
 
-export default function Page() {
-  const [userName, setUserName] = useState("");
-  const [chatRoom, setChatRoom] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
-
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
-    setLoading(true); // Set loading state
-
-    try {
-      // Make POST request to your backend
-      const res = await fetch("/api/sendMessage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userName, chatRoom }),
-      });
-
-      const data = await res.json();
-      setMessage(data.message); // Show success or error message
-    } catch (error) {
-      setMessage("An error occurred. Please try again.", error);
-    }
-
-    setLoading(false); // Remove loading state after response
-  };
-
+  useEffect(() => {
+    console.log("sender", typeof sender);
+    console.log("user", user);
+  }, []);
+  function handleSend() {
+    setMessage("");
+  }
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
-      <h1 className="text-2xl font-bold mb-6">Join a Chat Room</h1>
+    <div className="bg-gray-200 m-auto  h-[512px] flex w-1/2 flex-col place-self-center rounded-lg border-[1px] border-gray-400">
+      <ChatboxHeader user={user} />
+      <div className="p-4">
+        {messages.map((message, id) =>
+          message.sender === user ? (
+            <MessageBubble
+              key={id}
+              message={message.message}
+              senderIsUser={true} // Assuming this means the sender is the user
+            />
+          ) : (
+            <MessageBubble
+              key={id}
+              message={message.message}
+              senderIsUser={false} // Assuming this means the sender is not the user
+            />
+          )
+        )}
+      </div>
+      <div className="flex mt-auto flex-row gap-2 p-2 w-full">
+        <input
+          onChange={(e) => setMessage(e.target.value)}
+          value={message}
+          className="w-full p-2 rounded-lg"
+          placeholder="Enter message..."
+        />
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
-      >
-        {/* Username Input */}
-        <div className="mb-4">
-          <label
-            htmlFor="username"
-            className="block text-gray-700 text-sm font-bold mb-2"
-          >
-            Username
-          </label>
-          <input
-            type="text"
-            id="username"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
-
-        {/* Chat Room Input */}
-        <div className="mb-4">
-          <label
-            htmlFor="chatRoom"
-            className="block text-gray-700 text-sm font-bold mb-2"
-          >
-            Chat Room
-          </label>
-          <input
-            type="text"
-            id="chatRoom"
-            value={chatRoom}
-            onChange={(e) => setChatRoom(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex items-center justify-between">
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            disabled={loading}
-          >
-            {loading ? "Joining..." : "Join"}
-          </button>
-        </div>
-      </form>
-
-      {/* Message Display */}
-      {message && <p className="mt-4 text-gray-700">{message}</p>}
+        <button
+          className="hover:-rotate-45 duration-150 p-2 hover:scale-125 hover:ease-in-out"
+          onClick={() => handleSend()}
+        >
+          <SendHorizonal className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }

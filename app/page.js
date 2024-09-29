@@ -1,69 +1,105 @@
 "use client";
-import { SendHorizonal } from "lucide-react";
-import { useEffect, useState } from "react";
-import MessageBubble from "./components/message-bubble";
+import axios from "axios";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import userStore from "./utils/user-store";
-import ChatboxHeader from "./components/chatbox-header";
 
-export default function Home() {
+export default function Page() {
+  const router = useRouter();
+
+  const [userName, setUserName] = useState("");
+  const [chatRoom, setChatRoom] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+
   const { user, setUser, signOut } = userStore();
-  const [messages, setMessages] = useState([
-    {
-      sender: "Rutunj",
-      message: "Hii",
-    },
-    { sender: "Rakesh", message: "JSK" },
-    {
-      sender: "Rutunj",
-      message: "Kem cho",
-    },
-  ]);
-  const [message, setMessage] = useState("");
-  const [sender, setSender] = useState("");
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent page reload
+    setLoading(true); // Set loading state
+    try {
+      const res = await axios.post("/api/login", {
+        userName,
+        chatRoom,
+      }); // Change to the correct API endpoint
 
-  useEffect(() => {
-    setUser("Rutunj");
-    console.log("sender", typeof sender);
-    console.log("user", typeof user);
-  }, []);
-  function handleSend() {
-    setMessage("");
-  }
+      // Since Axios automatically parses JSON, we can access data directly
+      const data = res.data;
+      setMessage(data.message); // Show success or error message
+      toast.success(data.message);
+      setUser(userName);
+      console.log("user", user);
+      router.push("/chat-room"); // Redirect after successful submission
+    } catch (error) {
+      // Handle error properly
+      const errorMessage =
+        error.response?.data?.message || "An error occurred. Please try again.";
+      toast.error(errorMessage);
+      setMessage(errorMessage);
+    }
+
+    setLoading(false); // Remove loading state after response
+  };
+
   return (
-    <div className="bg-gray-200 m-auto  h-[512px] flex w-1/2 flex-col place-self-center rounded-lg border-[1px] border-gray-400">
-      <ChatboxHeader user={user} />
-      <div className="p-4">
-        {messages.map((message, id) =>
-          message.sender === user ? (
-            <MessageBubble
-              key={id}
-              message={message.message}
-              senderIsUser={true} // Assuming this means the sender is the user
-            />
-          ) : (
-            <MessageBubble
-              key={id}
-              message={message.message}
-              senderIsUser={false} // Assuming this means the sender is not the user
-            />
-          )
-        )}
-      </div>
-      <div className="flex mt-auto flex-row gap-2 p-2 w-full">
-        <input
-          onChange={(e) => setMessage(e.target.value)}
-          value={message}
-          className="w-full p-2 rounded-lg"
-          placeholder="Enter message..."
-        />
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
+      <h1 className="text-2xl font-bold mb-6">Join a Chat Room</h1>
 
-        <button
-          className="hover:-rotate-45 duration-150 p-2 hover:scale-125 hover:ease-in-out"
-          onClick={() => handleSend()}
-        >
-          <SendHorizonal className="w-5 h-5" />
-        </button>
-      </div>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+      >
+        {/* Username Input */}
+        <div className="mb-4">
+          <label
+            htmlFor="username"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            required
+          />
+        </div>
+
+        {/* Chat Room Input */}
+        <div className="mb-4">
+          <label
+            htmlFor="chatRoom"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            Chat Room
+          </label>
+          <input
+            type="text"
+            id="chatRoom"
+            value={chatRoom}
+            onChange={(e) => setChatRoom(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            required
+          />
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex items-center justify-between">
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={loading}
+          >
+            {loading ? "Joining..." : "Join"}
+          </button>
+        </div>
+      </form>
+
+      {/* Message Display */}
+      {message && <p className="mt-4 text-gray-700">{message}</p>}
     </div>
   );
 }
